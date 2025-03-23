@@ -1,0 +1,10 @@
+﻿@page "/_Host"
+@namespace SampleApp.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_Layout";
+}
+
+<component type="typeof(SampleApp.App)" render-mode="ServerPrerendered" />
+
+<script src="_framework/blazor.server.js"></script>

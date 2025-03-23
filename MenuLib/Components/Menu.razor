@@ -1,0 +1,184 @@
+﻿@namespace MenuLib.Components
+@using System.Collections.Generic
+@using System.Linq
+@using MenuLib.Models
+@implements IDisposable
+
+<div class="menu-container" @onmouseenter="ActivateMenu" @onmouseleave="DeactivateMenu">
+    <ul class="menu">
+        @foreach (var item in MenuItems)
+        {
+            <li class="menu-item @(item.HasChildren ? "has-children" : "")" 
+                @onmouseover="() => ShowTopLevelSubmenu(item)">
+                <div class="menu-item-content">
+                    <span class="menu-item-text @(item.IsSelected ? "selected" : "")">@item.Text</span>
+                    @if (item.HasChildren)
+                    {
+                        <span class="menu-indicator">▼</span>
+                    }
+                </div>
+                @if (item.HasChildren && item.IsExpanded)
+                {
+                    <div class="submenu" @onmouseleave="() => HideSubmenu(item)" style="@GetSubmenuPosition(item)">
+                        <ul>
+                            @foreach (var child in item.Children)
+                            {
+                                <li class="menu-item @(item.HasChildren ? "has-children" : "")"
+                                    @onmouseover="() => ShowChildSubmenu(child)">
+                                    <div class="menu-item-content">
+                                        <span class="menu-item-text @(child.IsSelected ? "selected" : "")">@child.Text</span>
+                                        @if (child.HasChildren)
+                                        {
+                                            <span class="menu-indicator">▶</span>
+                                        }
+                                    </div>
+                                    @if (child.HasChildren && child.IsExpanded)
+                                    {
+                                        <div class="submenu submenu-nested" @onmouseleave="() => HideSubmenu(child)" style="@GetSubmenuPosition(child)">
+                                            <MenuItemsRecursive Items="child.Children" ParentItem="child" OnItemHover="HandleChildItemHover" />
+                                        </div>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Parameter]
+    public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
+    
+    [Parameter]
+    public string MenuId { get; set; } = "";
+    
+    [Parameter]
+    public MenuManager MenuManager { get; set; } = new MenuManager();
+    
+    protected override void OnInitialized()
+    {
+        MenuManager.MenuStateChanged += MenuManagerStateChanged;
+    }
+    
+    private void ActivateMenu()
+    {
+        MenuManager.CloseAllExcept(MenuId);
+    }
+    
+    private void DeactivateMenu()
+    {
+        // Close all open submenus in this menu
+        foreach (var item in MenuItems)
+        {
+            CloseMenuItemTree(item);
+        }
+    }
+    
+    private void MenuManagerStateChanged()
+    {
+        // If this menu is not active, close all submenus
+        if (!MenuManager.IsMenuActive(MenuId))
+        {
+            foreach (var item in MenuItems)
+            {
+                CloseMenuItemTree(item);
+            }
+            StateHasChanged();
+        }
+    }
+    
+    private void ShowTopLevelSubmenu(MenuItem item)
+    {
+        MenuManager.CloseAllExcept(MenuId);
+        
+        // Close all other top-level menus
+        foreach (var menuItem in MenuItems)
+        {
+            if (menuItem != item)
+            {
+                CloseMenuItemTree(menuItem);
+            }
+        }
+        
+        // Open this item
+        item.IsExpanded = true;
+    }
+    
+    private void ShowChildSubmenu(MenuItem item)
+    {
+        // Close sibling items
+        if (item.Level > 0)
+        {
+            var parent = FindParentItem(item);
+            if (parent != null)
+            {
+                foreach (var child in parent.Children)
+                {
+                    if (child != item)
+                    {
+                        CloseMenuItemTree(child);
+                    }
+                }
+            }
+        }
+        
+        item.IsExpanded = true;
+    }
+    
+    private void HandleChildItemHover(MenuItem item)
+    {
+        ShowChildSubmenu(item);
+    }
+    
+    private MenuItem? FindParentItem(MenuItem item)
+    {
+        foreach (var menuItem in MenuItems)
+        {
+            var parent = FindParentRecursive(menuItem, item);
+            if (parent != null)
+                return parent;
+        }
+        return null;
+    }
+    
+    private MenuItem? FindParentRecursive(MenuItem current, MenuItem target)
+    {
+        foreach (var child in current.Children)
+        {
+            if (child == target)
+                return current;
+                
+            var found = FindParentRecursive(child, target);
+            if (found != null)
+                return found;
+        }
+        return null;
+    }
+    
+    private void HideSubmenu(MenuItem item)
+    {
+        CloseMenuItemTree(item);
+    }
+    
+    private void CloseMenuItemTree(MenuItem item)
+    {
+        item.IsExpanded = false;
+        foreach (var child in item.Children)
+        {
+            CloseMenuItemTree(child);
+        }
+    }
+    
+    private string GetSubmenuPosition(MenuItem item)
+    {
+        return item.Level > 0 ? "left: 100%; top: 0;" : "left: 0; top: 100%;";
+    }
+    
+    public void Dispose()
+    {
+        MenuManager.MenuStateChanged -= MenuManagerStateChanged;
+    }
+}

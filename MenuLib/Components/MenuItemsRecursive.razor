@@ -1,0 +1,66 @@
+﻿@namespace MenuLib.Components
+@using System.Collections.Generic
+@using MenuLib.Models
+
+<ul>
+    @foreach (var item in Items)
+    {
+        <li class="menu-item @(item.HasChildren ? "has-children" : "")"
+            @onmouseover="() => ItemHovered(item)">
+            <div class="menu-item-content">
+                <span class="menu-item-text @(item.IsSelected ? "selected" : "")">@item.Text</span>
+                @if (item.HasChildren)
+                {
+                    <span class="menu-indicator">▶</span>
+                }
+            </div>
+            @if (item.HasChildren && item.IsExpanded)
+            {
+                <div class="submenu submenu-nested" @onmouseleave="() => HideSubmenu(item)" style="left: 100%; top: 0;">
+                    <MenuItemsRecursive Items="item.Children" ParentItem="item" OnItemHover="OnItemHover" />
+                </div>
+            }
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter]
+    public List<MenuItem> Items { get; set; } = new List<MenuItem>();
+    
+    [Parameter]
+    public MenuItem? ParentItem { get; set; }
+    
+    [Parameter]
+    public EventCallback<MenuItem> OnItemHover { get; set; }
+    
+    private async Task ItemHovered(MenuItem item)
+    {
+        // Close siblings
+        foreach (var sibling in Items)
+        {
+            if (sibling != item)
+            {
+                sibling.IsExpanded = false;
+            }
+        }
+        
+        // Open this item
+        item.IsExpanded = true;
+        
+        // Notify parent
+        if (OnItemHover.HasDelegate)
+        {
+            await OnItemHover.InvokeAsync(item);
+        }
+    }
+    
+    private void HideSubmenu(MenuItem item)
+    {
+        item.IsExpanded = false;
+        foreach (var child in item.Children)
+        {
+            child.IsExpanded = false;
+        }
+    }
+}

@@ -1,0 +1,115 @@
+﻿@page "/"
+@using MenuLib.Components
+@using MenuLib.Models
+
+<PageTitle>Menu Demo</PageTitle>
+
+<h1>Blazor Menu Component Demo</h1>
+
+<div class="demo-section">
+    <h2>Basic Menu</h2>
+    <Menu MenuItems="@sampleMenuItems" MenuId="BasicMenu" MenuManager="@menuManager" />
+</div>
+
+<div class="demo-section">
+    <h2>Dynamic Menu</h2>
+    <div class="controls">
+        <button class="btn btn-primary" @onclick="AddMenuItem">Add Menu Item</button>
+        <button class="btn btn-secondary" @onclick="Reset">Reset</button>
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <span class="text-warning">@message</span>
+        }
+    </div>
+    <Menu MenuItems="@dynamicMenuItems" MenuId="DynamicMenu" MenuManager="@menuManager" />
+</div>
+
+@code {
+    private List<MenuItem> sampleMenuItems = new List<MenuItem>();
+    private List<MenuItem> dynamicMenuItems = new List<MenuItem>();
+    private int counter = 4;
+    private MenuManager menuManager = new MenuManager();
+    private string message = "";
+
+    protected override void OnInitialized()
+    {
+        sampleMenuItems = MenuItem.CreateSampleMenu();
+        Reset();
+    }
+
+    private void AddMenuItem()
+    {
+        if (dynamicMenuItems.Count < 8)
+        {
+            var newItem = new MenuItem($"Item {counter}");
+            newItem.AddChild($"Item {counter}.1");
+            dynamicMenuItems.Add(newItem);
+            counter++;
+            message = "";
+        }
+        else
+        {
+            message = "Maximum number of items reached (8).";
+        }
+    }
+
+    private void Reset()
+    {
+        dynamicMenuItems = new List<MenuItem>();
+        
+        var item1 = new MenuItem("Item 1");
+        var item1_1 = item1.AddChild("Item 1.1");
+        var item1_2 = item1.AddChild("Item 1.2");
+        item1_2.AddChild("Item 1.2.1");
+        item1_2.AddChild("Item 1.2.2");
+        
+        var item2 = new MenuItem("Item 2");
+        item2.AddChild("Item 2.1");
+        
+        var item3 = new MenuItem("Item 3");
+        
+        dynamicMenuItems.Add(item1);
+        dynamicMenuItems.Add(item2);
+        dynamicMenuItems.Add(item3);
+        
+        counter = 4;
+        message = "";
+    }
+}
+
+<style>
+    .demo-section {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .controls {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        margin-right: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-primary {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+    }
+    
+    .text-warning {
+        color: #ffc107;
+        margin-left: 1rem;
+    }
+</style>

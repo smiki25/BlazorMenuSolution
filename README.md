@@ -65,8 +65,8 @@ I chose these implementation details to balance functionality, user experience, 
    dotnet run
    ```
 
-4. Navigate to the link provided in the build 
-	Example : Now listening on: http://localhost:5140
+4. Navigate to the link provided in the build. 
+For Example : Now listening on: http://localhost:5140
 
 ## Future Improvements
 

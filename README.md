@@ -39,10 +39,37 @@ I chose these implementation details to balance functionality, user experience, 
 - The component structure follows Blazor best practices, with clean separation of concerns
 - The styling is lightweight but provides all the visual cues users need
 
+## Setup and Installation
+
+### Prerequisites
+- .NET 8.0 SDK or later
+- Visual Studio 2022 or Visual Studio Code
+
+### Getting Started
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/smiki25/BlazorMenuSolution.git
+   cd BlazorMenuComponent
+   ```
+
+2. Open the solution in Visual Studio or VS Code:
+   ```
+   dotnet restore
+   dotnet build
+   ```
+
+3. Run the sample application:
+   ```
+   cd SampleApp
+   dotnet run
+   ```
+
+4. Navigate to the link provided in the build 
+	Example : Now listening on: http://localhost:5140
+
 ## Future Improvements
 
 Potential enhancements that could be added:
 - Keyboard navigation support
 - Animation options for menu transitions
-- Mobile-friendly touch interactions
-- Theme customization options
